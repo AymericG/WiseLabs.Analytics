@@ -96,6 +96,11 @@
     <Content Include="Global.asax" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
+    <Content Include="Nuget\DashboardPage.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>DashboardPage.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Nuget\razorgenerator.directives" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />
     <Content Include="Scripts\jquery-1.10.2.js" />
     <Content Include="Scripts\jquery-1.10.2.min.js" />
@@ -107,10 +112,20 @@
   <ItemGroup>
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\HomeController.cs" />
-    <Compile Include="Factory\DashboardPageFactory.cs" />
+    <Compile Include="Nuget\DashboardPage.cs" />
+    <Compile Include="Nuget\DashboardPage.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DashboardPage.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Nuget\DashboardPageFactory.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Nuget\DelegatingHttpHandler.cs" />
+    <Compile Include="Nuget\HtmlString.cs" />
+    <Compile Include="Nuget\RazorTemplateBase.cs" />
+    <Compile Include="Nuget\WebTemplateBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
