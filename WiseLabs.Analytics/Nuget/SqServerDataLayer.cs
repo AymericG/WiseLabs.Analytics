@@ -5,13 +5,6 @@ using System.Transactions;
 
 namespace WiseLabs.Analytics
 {
-    public class Event
-    {
-        public string CohortName { get; set; }
-        public string EventName { get; set; }
-        public int EventCount { get; set; }
-    }
-
     public class SqServerDataLayer : IDataLayer
     {
         private string ConnectionString
@@ -26,8 +19,12 @@ namespace WiseLabs.Analytics
 
         public List<Event> GetEvents()
         {
+            const string QueryCommandText = @"
+SELECT EventName, CohortName, COUNT(*) as EventCount 
+    FROM Analytics_Event 
+    GROUP BY CohortName, EventName";
             using (var connection = new SqlConnection(ConnectionString))
-            using (var command = new SqlCommand("SELECT * From Analytics_Event", connection))
+            using (var command = new SqlCommand(QueryCommandText, connection))
             {
                 connection.Open();
 
@@ -36,67 +33,53 @@ namespace WiseLabs.Analytics
                     var list = new List<Event>();
                     while (reader.Read())
                     {
-                        list.Add(new Event()
-                        {
-                            EventCount = (int)reader["EventCount"],
-                            EventName = (string)reader["EventName"],
-                            CohortName = (string)reader["CohortName"]
-                        });
+                        list.Add(ToEvent(reader));
                     }
                     return list;
                 }
             }
-        } 
+        }
 
-        public void TrackEvent(string cohortName, string eventName)
+        private static Event ToEvent(SqlDataReader reader)
+        {
+            return new Event()
+            {
+                EventName = (string)reader["EventName"],
+                CohortName = (string)reader["CohortName"],
+                EventCount = (int)reader["EventCount"]
+            };
+        }
+
+        public void TrackEvent(string userId, string cohortName, string eventName)
         {
             using (var transaction = new TransactionScope())
             {
-                // get cohort pair
-                int? currentEventCount = null;
-                using (var connection = new SqlConnection(ConnectionString))
-                using (var command = new SqlCommand("SELECT EventCount From Analytics_Event where CohortName = @CohortName and EventName = @EventName", connection))
-                {
-                    command.Parameters.AddWithValue("@CohortName", cohortName);
-                    command.Parameters.AddWithValue("@EventName", eventName);
-
-                    connection.Open();
-                    currentEventCount = (int?) command.ExecuteScalar();
-                }
-
-                if (currentEventCount.HasValue)
-                {
-                    // update count
-                    UpdateCohortEventPair(cohortName, eventName);
-                }
-                else
-                {
-                    // if not exist create
-                    InsertNewCohortEventPair(cohortName, eventName);
-                }
+                InsertEventOnce(userId, cohortName, eventName);
                 transaction.Complete();
             }
         }
 
-        private void InsertNewCohortEventPair(string cohortName, string eventName)
+        
+        private void InsertEventOnce(string userId, string cohortName, string eventName)
         {
-            // write your data layer like it is year 2004.
-            using (var connection = new SqlConnection(ConnectionString))
-            using (var command = new SqlCommand("INSERT INTO Analytics_Event (CohortName, EventName, EventCount) VALUES (@CohortName, @EventName, 1)", connection))
-            {
-                command.Parameters.AddWithValue("@CohortName", cohortName);
-                command.Parameters.AddWithValue("@EventName", eventName);
-                connection.Open();
-                command.ExecuteNonQuery();
-            }
-        }
+            //if not exists (select * from Table with (updlock, rowlock, holdlock) where ...)
+            const string InsertCommandText = @"
+IF NOT EXISTS 
+    (SELECT * 
+        FROM Analytics_Event WITH (updlock, rowlock, holdlock) 
+        WHERE UserId = @UserId 
+        AND CohortName = @CohortName 
+        AND EventName = @EventName)
+BEGIN
+    INSERT INTO Analytics_Event (UserId, CohortName, EventName) 
+        VALUES (@UserId, @CohortName, @EventName)
+END";
 
-        private void UpdateCohortEventPair(string cohortName, string eventName)
-        {
             // write your data layer like it is year 2004.
             using (var connection = new SqlConnection(ConnectionString))
-            using (var command = new SqlCommand("UPDATE Analytics_Event SET EventCount = EventCount + 1 WHERE CohortName = @CohortName AND EventName = @EventName", connection))
+            using (var command = new SqlCommand(InsertCommandText, connection))
             {
+                command.Parameters.AddWithValue("@UserId", userId);
                 command.Parameters.AddWithValue("@CohortName", cohortName);
                 command.Parameters.AddWithValue("@EventName", eventName);
                 connection.Open();
@@ -122,9 +105,10 @@ namespace WiseLabs.Analytics
                     {
                         const string createTableCommand = @"CREATE TABLE [dbo].[Analytics_Event](
     [EventId] [bigint] IDENTITY(1,1) NOT NULL,
+    [UserId] [nvarchar](max) NOT NULL,
     [CohortName] [nvarchar](max) NOT NULL,
     [EventName] [nvarchar](max) NOT NULL,
-    [EventCount] int NOT NULL,
+    [CreatedAt] datetime NOT NULL DEFAULT(GETUTCDATE()),
  CONSTRAINT [PK_Analytics_Event] PRIMARY KEY CLUSTERED 
 (
     [EventId] ASC

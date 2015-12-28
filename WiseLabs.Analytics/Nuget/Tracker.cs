@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Web;
+﻿using System.Collections.Generic;
 
 namespace WiseLabs.Analytics
 {
@@ -25,9 +21,10 @@ namespace WiseLabs.Analytics
             return DataLayer.GetEvents();
         } 
 
-        public static void Track(string cohortName, string eventName)
+        public static void Track(string userId, string cohortName, string eventName)
         {
-            DataLayer.TrackEvent(cohortName, eventName);
+            // We need userId to check whether this event has already been reported.
+            DataLayer.TrackEvent(userId, cohortName, eventName);
         }
     }
 }
