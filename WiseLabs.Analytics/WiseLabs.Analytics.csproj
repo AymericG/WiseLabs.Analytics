@@ -48,6 +48,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Transactions" />
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.ApplicationServices" />
@@ -112,6 +113,7 @@
   <ItemGroup>
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Nuget\Tracker.cs" />
     <Compile Include="Nuget\DashboardPage.cs" />
     <Compile Include="Nuget\DashboardPage.generated.cs">
       <AutoGen>True</AutoGen>
@@ -124,7 +126,9 @@
     </Compile>
     <Compile Include="Nuget\DelegatingHttpHandler.cs" />
     <Compile Include="Nuget\HtmlString.cs" />
+    <Compile Include="Nuget\IDataLayer.cs" />
     <Compile Include="Nuget\RazorTemplateBase.cs" />
+    <Compile Include="Nuget\SqServerDataLayer.cs" />
     <Compile Include="Nuget\WebTemplateBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Content Include="Views\_ViewStart.cshtml" />
