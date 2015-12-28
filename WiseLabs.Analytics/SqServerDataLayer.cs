@@ -11,7 +11,11 @@ namespace WiseLabs.Analytics
             get
             {
                 var connectionStringName = ConfigurationManager.AppSettings["WiseLabs.Analytics.ConnectionString.Name"];
-                return ConfigurationManager.ConnectionStrings[connectionStringName].ConnectionString;
+                if (connectionStringName != null)
+                {
+                    return ConfigurationManager.ConnectionStrings[connectionStringName].ConnectionString;
+                }
+                return ConfigurationManager.AppSettings[ConfigurationManager.AppSettings["WiseLabs.Analytics.ConnectionString.AppSettings.Name"]];
             }
         }
 
