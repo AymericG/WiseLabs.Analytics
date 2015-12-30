@@ -43,6 +43,60 @@ SELECT EventName, CohortName, COUNT(*) as EventCount
                 }
             }
         }
+        public List<Experiment> GetExperiments()
+        {
+            const string QueryCommandText = @"SELECT * FROM Analytics_Experiment";
+            using (var connection = new SqlConnection(ConnectionString))
+            using (var command = new SqlCommand(QueryCommandText, connection))
+            {
+                connection.Open();
+
+                using (var reader = command.ExecuteReader())
+                {
+                    var list = new List<Experiment>();
+                    while (reader.Read())
+                    {
+                        list.Add(ToExperiment(reader));
+                    }
+                    return list;
+                }
+            }
+        }
+
+        public List<ExperimentEvent> GetEventsForExperiments()
+        {
+            const string QueryCommandText = @"
+SELECT u.ExperimentId, u.Variation, e.EventName, COUNT(*) as EventCount 
+    FROM Analytics_Event e
+    JOIN Analytics_ExperimentUser u ON u.UserId = e.UserId
+    WHERE e.CreatedAt > u.CreatedAt
+    GROUP BY u.ExperimentId, u.Variation, e.EventName";
+            using (var connection = new SqlConnection(ConnectionString))
+            using (var command = new SqlCommand(QueryCommandText, connection))
+            {
+                connection.Open();
+
+                using (var reader = command.ExecuteReader())
+                {
+                    var list = new List<ExperimentEvent>();
+                    while (reader.Read())
+                    {
+                        list.Add(ToExperimentEvent(reader));
+                    }
+                    return list;
+                }
+            }
+        }
+
+        private ExperimentEvent ToExperimentEvent(SqlDataReader reader)
+        {
+            var experimentEvent = new ExperimentEvent();
+            experimentEvent.EventName = (string)reader["EventName"];
+            experimentEvent.ExperimentId = (long)reader["ExperimentId"];
+            experimentEvent.Variation = (short)reader["Variation"];
+            experimentEvent.EventCount = (int)reader["EventCount"];
+            return experimentEvent;
+        }
 
         private static Event ToEvent(SqlDataReader reader)
         {

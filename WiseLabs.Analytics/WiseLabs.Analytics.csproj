@@ -54,6 +54,7 @@
     <Compile Include="DashboardPageFactory.cs" />
     <Compile Include="DelegatingHttpHandler.cs" />
     <Compile Include="Event.cs" />
+    <Compile Include="ExperimentEvent.cs" />
     <Compile Include="HtmlString.cs" />
     <Compile Include="IDataLayer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

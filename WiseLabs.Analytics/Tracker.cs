@@ -33,6 +33,21 @@ namespace WiseLabs.Analytics
             variations[variation]();
         }
 
+        private static List<Experiment> _allExperiments = null; 
+        public static List<Experiment> GetExperiments()
+        {
+            if (_allExperiments == null)
+            {
+                _allExperiments = DataLayer.GetExperiments();
+            }
+            return _allExperiments;
+        }
+
+        public static List<ExperimentEvent> GetEventsForExperiments()
+        {
+            return DataLayer.GetEventsForExperiments();
+        }
+
         private static int PickVariation(string userId, int variationCount)
         {
             return Math.Abs(userId.GetHashCode() % variationCount);
