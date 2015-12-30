@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data.SqlClient;
@@ -80,23 +81,118 @@ END";
             }
         }
 
-        public void CreateTableIfNeeded()
+        public void CreateTablesIfNeeded()
         {
             using (var connection = new SqlConnection(ConnectionString))
             {
                 connection.Open();
-                try
+                CreateAnalyticsEventTable(connection);
+                CreateAnalyticsExperimentTables(connection);
+            }
+        }
+
+        public Experiment GetOrCreateExperiment(string experimentName)
+        {
+            //if not exists (select * from Table with (updlock, rowlock, holdlock) where ...)
+            using (var connection = new SqlConnection(ConnectionString))
+            {
+                connection.Open();
+
+                var experiment = GetExperiment(connection, experimentName);
+                if (experiment == null)
                 {
-                    using (var command = new SqlCommand("SELECT * FROM Analytics_Event WHERE 1 = 0", connection))
-                    {
-                        command.ExecuteNonQuery();
-                    }
+                    experiment = InsertExperiment(connection, experimentName);
                 }
-                catch (SqlException ex)
+                return experiment;
+            }
+        }
+
+        public void CreateExperimentUserOnce(string userId, long experimentId, int variation)
+        {
+            //if not exists (select * from Table with (updlock, rowlock, holdlock) where ...)
+            const string InsertCommandText = @"
+IF NOT EXISTS 
+    (SELECT * 
+        FROM Analytics_ExperimentUser WITH (updlock, rowlock, holdlock) 
+        WHERE UserId = @UserId 
+        AND ExperimentId = @ExperimentId)
+BEGIN
+    INSERT INTO Analytics_ExperimentUser (UserId, ExperimentId, Variation) 
+        VALUES (@UserId, @ExperimentId, @Variation)
+END";
+
+            using (var connection = new SqlConnection(ConnectionString))
+            using (var command = new SqlCommand(InsertCommandText, connection))
+            {
+                command.Parameters.AddWithValue("@ExperimentId", experimentId);
+                command.Parameters.AddWithValue("@UserId", userId);
+                command.Parameters.AddWithValue("@Variation", variation);
+                connection.Open();
+                command.ExecuteNonQuery();
+            }
+        }
+
+        private Experiment GetExperiment(SqlConnection connection, string experimentName)
+        {
+            const string QueryCommandText = @"
+SELECT ExperimentId, Name, CreatedAt 
+    FROM Analytics_Experiment 
+    WHERE Name = @ExperimentName";
+
+            using (var command = new SqlCommand(QueryCommandText, connection))
+            {
+                command.Parameters.AddWithValue("@ExperimentName", experimentName);
+                using (var reader = command.ExecuteReader())
                 {
-                    if (ex.Message == "Invalid object name 'Analytics_Event'.")
+                    if (reader.Read())
                     {
-                        const string createTableCommand = @"CREATE TABLE [dbo].[Analytics_Event](
+                        return ToExperiment(reader);
+                    }
+                    return null;
+                }
+            }
+        }
+
+        private Experiment InsertExperiment(SqlConnection connection, string experimentName)
+        {
+            const string InsertCommandText = @"INSERT INTO Analytics_Experiment (Name) output INSERTED.ExperimentId VALUES (@ExperimentName)";
+
+            using (var command = new SqlCommand(InsertCommandText, connection))
+            {
+                command.Parameters.AddWithValue("@ExperimentName", experimentName);
+                return new Experiment()
+                {
+                    CreatedAt = DateTime.UtcNow,
+                    ExperimentId = (long) command.ExecuteScalar(),
+                    Name = experimentName
+                };
+            }
+        }
+
+        private Experiment ToExperiment(SqlDataReader reader)
+        {
+            return new Experiment()
+            {
+                Name = reader["Name"].ToString(),
+                CreatedAt = (DateTime)reader["CreatedAt"],
+                ExperimentId = (long) reader["ExperimentId"]
+            };
+        }
+
+        private static void CreateAnalyticsEventTable(SqlConnection connection)
+        {
+            try
+            {
+                using (var command = new SqlCommand("SELECT * FROM Analytics_Event WHERE 1 = 0", connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+            }
+            catch (SqlException ex)
+            {
+                if (ex.Message == "Invalid object name 'Analytics_Event'.")
+                {
+                    const string createTableCommand = @"CREATE TABLE [dbo].[Analytics_Event](
     [EventId] [bigint] IDENTITY(1,1) NOT NULL,
     [UserId] [nvarchar](max) NOT NULL,
     [CohortName] [nvarchar](max) NOT NULL,
@@ -107,10 +203,50 @@ END";
     [EventId] ASC
 ))
 ";
-                        using (var command = new SqlCommand(createTableCommand, connection))
-                        {
-                            command.ExecuteNonQuery();
-                        }
+                    using (var command = new SqlCommand(createTableCommand, connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+                }
+            }
+        }
+
+        private static void CreateAnalyticsExperimentTables(SqlConnection connection)
+        {
+            try
+            {
+                using (var command = new SqlCommand("SELECT * FROM Analytics_Experiment WHERE 1 = 0", connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+            }
+            catch (SqlException ex)
+            {
+                if (ex.Message == "Invalid object name 'Analytics_Experiment'.")
+                {
+                    const string createTableCommand = @"CREATE TABLE [dbo].[Analytics_Experiment](
+    [ExperimentId] [bigint] IDENTITY(1,1) NOT NULL,
+    [Name] [nvarchar](max) NOT NULL,
+    [CreatedAt] [datetime] NOT NUlL DEFAULT (getutcdate()),
+ CONSTRAINT [PK_Analytics_Experiment] PRIMARY KEY CLUSTERED 
+(
+    [ExperimentId] ASC
+))
+
+CREATE TABLE [dbo].[Analytics_ExperimentUser](
+    [ExperimentUserId] [bigint] IDENTITY(1,1) NOT NULL,
+    [ExperimentId] [bigint] NOT NULL,
+    [UserId] [nvarchar](max) NOT NULL,
+    [Variation] [smallint] NOT NULL,
+    [CreatedAt] [datetime] NOT NULL DEFAULT (getutcdate()),
+ CONSTRAINT [PK_Analytics_ExperimentUser] PRIMARY KEY CLUSTERED 
+(
+    [ExperimentUserId] ASC
+))
+";
+                    using (var command = new SqlCommand(createTableCommand, connection))
+                    {
+                        command.ExecuteNonQuery();
                     }
                 }
             }

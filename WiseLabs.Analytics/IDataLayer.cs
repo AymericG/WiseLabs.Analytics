@@ -6,6 +6,8 @@ namespace WiseLabs.Analytics
     {
         List<Event> GetEvents();
         void InsertEventOnce(string userId, string cohortName, string eventName);
-        void CreateTableIfNeeded();
+        void CreateTablesIfNeeded();
+        Experiment GetOrCreateExperiment(string experimentName);
+        void CreateExperimentUserOnce(string userId, long experimentId, int variation);
     }
 }

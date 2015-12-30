@@ -63,13 +63,13 @@
     <Compile Include="WebTemplateBase.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="DashboardPage.cshtml">
+    <None Include="DashboardPage.cshtml">
       <Generator>RazorGenerator</Generator>
       <LastGenOutput>DashboardPage.generated.cs</LastGenOutput>
-    </Content>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="razorgenerator.directives" />
+    <None Include="razorgenerator.directives" />
   </ItemGroup>
   <ItemGroup>
     <None Include="WiseLabs.Analytics.nuspec" />

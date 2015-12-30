@@ -1,4 +1,5 @@
 ﻿@using System.Configuration
+@using System.Linq
 @using WiseLabs.Analytics
 
 @inherits WebTemplateBase
@@ -39,6 +40,10 @@
     var cohorts = Tracker.GetEvents().GroupBy(x => x.CohortName).OrderBy(x => x.Key);
     var funnel = ConfigurationManager.AppSettings["WiseLabs.Analytics.Funnel"].Split(',');
 }
+
+<p>
+    Cohors found: @cohorts.Count()
+</p>
 
 @foreach (var cohort in cohorts)
 {
