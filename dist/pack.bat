@@ -1,0 +1,1 @@
+..\nuget.exe pack ..\WiseLabs.Analytics\WiseLabs.Analytics.csproj
