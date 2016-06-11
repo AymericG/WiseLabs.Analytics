@@ -253,13 +253,19 @@ SELECT ExperimentId, Name, CreatedAt
                     const string createTableCommand = @"CREATE TABLE [dbo].[Analytics_Event](
     [EventId] [bigint] IDENTITY(1,1) NOT NULL,
     [UserId] [nvarchar](max) NOT NULL,
-    [CohortName] [nvarchar](max) NOT NULL,
-    [EventName] [nvarchar](max) NOT NULL,
+    [CohortName] [nvarchar](32) NOT NULL,
+    [EventName] [nvarchar](32) NOT NULL,
     [CreatedAt] datetime NOT NULL DEFAULT(GETUTCDATE()),
  CONSTRAINT [PK_Analytics_Event] PRIMARY KEY CLUSTERED 
 (
     [EventId] ASC
 ))
+
+CREATE NONCLUSTERED INDEX IX_Analytics_Event_CohortName_EventName ON [WeekPlan].[dbo].[Analytics_Event]
+(
+[CohortName],
+ [EventName]
+)
 ";
                     using (var command = new SqlCommand(createTableCommand, connection))
                     {
