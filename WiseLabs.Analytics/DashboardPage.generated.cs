@@ -85,10 +85,10 @@ WriteLiteral(@"
             
             #line 39 "..\..\DashboardPage.cshtml"
   
-    var cohorts = Tracker.GetEvents()
+    var funnel = ConfigurationManager.AppSettings["WiseLabs.Analytics.Funnel"].Split(',');
+    var cohorts = Tracker.GetEvents(funnel[0])
         .GroupBy(x => x.CohortName)
         .OrderBy(x => x.Key);
-    var funnel = ConfigurationManager.AppSettings["WiseLabs.Analytics.Funnel"].Split(',');
 
 
             

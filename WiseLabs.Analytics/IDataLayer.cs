@@ -4,7 +4,7 @@ namespace WiseLabs.Analytics
 {
     public interface IDataLayer
     {
-        List<Event> GetEvents();
+        List<Event> GetEvents(string firstEventName);
         List<Experiment> GetExperiments();
         List<ExperimentEvent> GetEventsForExperiments(); 
         void InsertEventOnce(string userId, string cohortName, string eventName);

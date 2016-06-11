@@ -21,15 +21,19 @@ namespace WiseLabs.Analytics
         }
 
 
-        public List<Event> GetEvents()
+        public List<Event> GetEvents(string firstEventName)
         {
             const string QueryCommandText = @"
-SELECT EventName, CohortName, COUNT(*) as EventCount 
-    FROM Analytics_Event 
-    GROUP BY CohortName, EventName";
+SELECT e1.EventName, e1.CohortName, COUNT(*) as EventCount 
+    FROM Analytics_Event e1
+    WHERE e1.EventName = @FirstEventName OR 
+    e1.UserId IN (SELECT e2.UserId from Analytics_Event e2 WHERE e1.CohortName = e2.CohortName AND e2.EventName = @FirstEventName)
+    GROUP BY e1.CohortName, e1.EventName";
             using (var connection = new SqlConnection(ConnectionString))
             using (var command = new SqlCommand(QueryCommandText, connection))
             {
+                command.Parameters.AddWithValue("@FirstEventName", firstEventName);
+                
                 connection.Open();
 
                 using (var reader = command.ExecuteReader())

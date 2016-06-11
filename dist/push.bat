@@ -1,0 +1,1 @@
+..\nuget.exe push WiseLabs.Analytics.0.6.nupkg

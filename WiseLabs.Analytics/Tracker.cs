@@ -87,9 +87,9 @@ namespace WiseLabs.Analytics
             DataLayer.CreateTablesIfNeeded();
         }
 
-        public static List<Event> GetEvents()
+        public static List<Event> GetEvents(string firstEventName)
         {
-            return DataLayer.GetEvents();
+            return DataLayer.GetEvents(firstEventName);
         } 
 
         public static void Track(string userId, string cohortName, string eventName)
