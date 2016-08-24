@@ -88,7 +88,7 @@ WriteLiteral(@"
     var funnel = ConfigurationManager.AppSettings["WiseLabs.Analytics.Funnel"].Split(',');
     var cohorts = Tracker.GetEvents(funnel[0])
         .GroupBy(x => x.CohortName)
-        .OrderBy(x => x.Key);
+        .OrderByDescending(x => x.Key);
 
 
             
@@ -112,7 +112,7 @@ WriteLiteral("\r\n</p>\r\n\r\n");
  foreach (var cohort in cohorts)
 {
     var firstEvent = cohort.SingleOrDefault(x => x.EventName == funnel[0]);
-    var max = firstEvent == null ? 0 : firstEvent.EventCount;
+    double max = firstEvent == null ? 0 : firstEvent.EventCount;
     if (max != 0)
     {
 
@@ -141,7 +141,7 @@ WriteLiteral("        <ul class=\"funnel\">\r\n\r\n");
              foreach (var step in funnel)
             {
                 var e = cohort.SingleOrDefault(x => x.EventName == step);
-                var percent = e == null ? 0 : e.EventCount * 100 / max;
+                var percent = e == null ? 0 : (double) e.EventCount * 100 / max;
                 var pixels = percent * 3;
 
 
@@ -163,16 +163,16 @@ WriteLiteral("\r\n                    <span class=\"text\">");
 
             
             #line 67 "..\..\DashboardPage.cshtml"
-                                   Write(step + ": " + percent + "% (" + (e == null ? 0 : e.EventCount) + ")");
+                                   Write(step + ": " + percent.ToString("00.00") + "% (" + (e == null ? 0 : e.EventCount) + ")");
 
             
             #line default
             #line hidden
-WriteLiteral("</span>\r\n                </li>\r\n");
+WriteLiteral("</span>\r\n                    \r\n                </li>\r\n");
 
 
             
-            #line 69 "..\..\DashboardPage.cshtml"
+            #line 70 "..\..\DashboardPage.cshtml"
                 
             }
 
@@ -183,7 +183,7 @@ WriteLiteral("        </ul>\r\n");
 
 
             
-            #line 72 "..\..\DashboardPage.cshtml"
+            #line 73 "..\..\DashboardPage.cshtml"
     }
 }
 
@@ -194,7 +194,7 @@ WriteLiteral("\r\n");
 
 
             
-            #line 75 "..\..\DashboardPage.cshtml"
+            #line 76 "..\..\DashboardPage.cshtml"
   
     
     var experiments = SplitTesting.GetExperiments();
@@ -210,7 +210,7 @@ WriteLiteral("\r\n<p>\r\n    Experiments found: ");
 
 
             
-            #line 84 "..\..\DashboardPage.cshtml"
+            #line 85 "..\..\DashboardPage.cshtml"
                   Write(experimentData.Count());
 
             
@@ -220,11 +220,11 @@ WriteLiteral("\r\n</p>\r\n\r\n");
 
 
             
-            #line 87 "..\..\DashboardPage.cshtml"
+            #line 88 "..\..\DashboardPage.cshtml"
  foreach (var experiment in experimentData)
 {
     var firstEvent = experiment.SingleOrDefault(x => x.EventName == funnel[0]);
-    var max = firstEvent == null ? 0 : firstEvent.EventCount;
+    double max = firstEvent == null ? 0 : firstEvent.EventCount;
     if (max != 0)
     {
 
@@ -235,7 +235,7 @@ WriteLiteral("        <h3>Experiment #");
 
 
             
-            #line 93 "..\..\DashboardPage.cshtml"
+            #line 94 "..\..\DashboardPage.cshtml"
                    Write(experiment.Key);
 
             
@@ -245,7 +245,7 @@ WriteLiteral(": ");
 
 
             
-            #line 93 "..\..\DashboardPage.cshtml"
+            #line 94 "..\..\DashboardPage.cshtml"
                                     Write(experiments.Single(x => x.ExperimentId == experiment.Key).Name);
 
             
@@ -259,11 +259,11 @@ WriteLiteral("        <ul class=\"funnel\">\r\n\r\n");
 
 
             
-            #line 96 "..\..\DashboardPage.cshtml"
+            #line 97 "..\..\DashboardPage.cshtml"
              foreach (var step in funnel)
             {
                 var e = experiment.SingleOrDefault(x => x.EventName == step);
-                var percent = e == null ? 0 : e.EventCount * 100 / max;
+                var percent = e == null ? 0 : (double) e.EventCount * 100 / max;
                 var pixels = percent * 3;
 
 
@@ -274,7 +274,7 @@ WriteLiteral("                <li>\r\n                    ");
 
 
             
-            #line 103 "..\..\DashboardPage.cshtml"
+            #line 104 "..\..\DashboardPage.cshtml"
                Write(WiseLabs.Analytics.Html.Raw("<div class='bar' style='width: " + pixels + "px;'></div>"));
 
             
@@ -284,7 +284,7 @@ WriteLiteral("\r\n                    <span class=\"text\">");
 
 
             
-            #line 104 "..\..\DashboardPage.cshtml"
+            #line 105 "..\..\DashboardPage.cshtml"
                                    Write(step + ": " + percent + "% (" + (e == null ? 0 : e.EventCount) + ")");
 
             
@@ -294,7 +294,7 @@ WriteLiteral("</span>\r\n                </li>\r\n");
 
 
             
-            #line 106 "..\..\DashboardPage.cshtml"
+            #line 107 "..\..\DashboardPage.cshtml"
 
             }
 
@@ -305,7 +305,7 @@ WriteLiteral("        </ul>\r\n");
 
 
             
-            #line 109 "..\..\DashboardPage.cshtml"
+            #line 110 "..\..\DashboardPage.cshtml"
     }
 }
 

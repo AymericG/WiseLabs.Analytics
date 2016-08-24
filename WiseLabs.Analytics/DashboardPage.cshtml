@@ -40,7 +40,7 @@
     var funnel = ConfigurationManager.AppSettings["WiseLabs.Analytics.Funnel"].Split(',');
     var cohorts = Tracker.GetEvents(funnel[0])
         .GroupBy(x => x.CohortName)
-        .OrderBy(x => x.Key);
+        .OrderByDescending(x => x.Key);
 }
 
 <p>
@@ -50,7 +50,7 @@
 @foreach (var cohort in cohorts)
 {
     var firstEvent = cohort.SingleOrDefault(x => x.EventName == funnel[0]);
-    var max = firstEvent == null ? 0 : firstEvent.EventCount;
+    double max = firstEvent == null ? 0 : firstEvent.EventCount;
     if (max != 0)
     {
         <h3>@cohort.Key</h3>
@@ -59,12 +59,13 @@
             @foreach (var step in funnel)
             {
                 var e = cohort.SingleOrDefault(x => x.EventName == step);
-                var percent = e == null ? 0 : e.EventCount * 100 / max;
+                var percent = e == null ? 0 : (double) e.EventCount * 100 / max;
                 var pixels = percent * 3;
 
                 <li>
                     @WiseLabs.Analytics.Html.Raw("<div class='bar' style='width: " + pixels + "px;'></div>")
-                    <span class="text">@(step + ": " + percent + "% (" + (e == null ? 0 : e.EventCount) + ")")</span>
+                    <span class="text">@(step + ": " + percent.ToString("00.00") + "% (" + (e == null ? 0 : e.EventCount) + ")")</span>
+                    
                 </li>
                 
             }
@@ -87,7 +88,7 @@
 @foreach (var experiment in experimentData)
 {
     var firstEvent = experiment.SingleOrDefault(x => x.EventName == funnel[0]);
-    var max = firstEvent == null ? 0 : firstEvent.EventCount;
+    double max = firstEvent == null ? 0 : firstEvent.EventCount;
     if (max != 0)
     {
         <h3>Experiment #@experiment.Key: @experiments.Single(x => x.ExperimentId == experiment.Key).Name</h3>
@@ -96,7 +97,7 @@
             @foreach (var step in funnel)
             {
                 var e = experiment.SingleOrDefault(x => x.EventName == step);
-                var percent = e == null ? 0 : e.EventCount * 100 / max;
+                var percent = e == null ? 0 : (double) e.EventCount * 100 / max;
                 var pixels = percent * 3;
 
                 <li>

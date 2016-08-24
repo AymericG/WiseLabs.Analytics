@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>WiseLabs.Analytics</id>
-    <version>0.6</version>
+    <version>0.7</version>
     <title>WiseLabs.Analytics - AARRR dashboard</title>
     <authors>Aymeric Gaurat-Apelli</authors>
     <owners>Aymeric Gaurat-Apelli</owners>
@@ -10,6 +10,6 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Allows you to track events and show a funnel dashboard.</description>
     <copyright>Copyright 2015</copyright>
-    <tags>aarrr</tags>
+    <tags>aarrr, metrics</tags>
   </metadata>
 </package>
